@@ -1,0 +1,5 @@
+build/
+.cache/
+compile_commands.json
+bitcarpet_bw.pbm
+bitcarpet_fancy.ppm
