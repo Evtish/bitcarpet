@@ -6,7 +6,6 @@ endif
 
 CFLAGS ?= -Wall -Wextra -Wdeclaration-after-statement -std=c99 -pedantic -Og -g
 override CFLAGS += -I$(INC_DIR)
-LDFLAGS ?=
 
 SRC_DIR = src
 INC_DIR = inc
@@ -38,8 +37,13 @@ ifeq (0, $(words $(findstring $(MAKECMDGOALS), $(NO_DEP_TARGETS))))
 include $(DEPS)
 endif
 
+# Condition to get rid of two spaces when LDFLAGS is empty
 $(EXECUTABLE): $(OBJS)
+ifneq ($(LDFLAGS),)
 	$(CC) $(LDFLAGS) -o $@ $^
+else
+	$(CC) -o $@ $^
+endif
 
 run: $(EXECUTABLE)
 	./$(EXECUTABLE)
