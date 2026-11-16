@@ -6,8 +6,10 @@
 
 #define PBM_FILENAME "bitcarpet_bw.pbm"
 #define PPM_FILENAME "bitcarpet_fancy.ppm"
-#define WIDTH 256
-#define HEIGHT 256
+#define WIDTH 256  // In cells
+#define HEIGHT 256 // In cells
+#define CELL_DX 4  // In pixels
+#define CELL_DY 4  // In pixels
 #define BLANK_R 0x1a
 #define BLANK_G 0x1b
 #define BLANK_B 0x26
@@ -31,7 +33,7 @@ int main(void) {
 		perror("fopen");
 		return EXIT_FAILURE;
 	}
-	if (bitcarpet_write_bw(image, WIDTH, HEIGHT) != 0) {
+	if (bitcarpet_write_bw(image, WIDTH, HEIGHT, CELL_DX, CELL_DY) == -1) {
 		perror("bitcarpet_write_bw");
 		fclose_or_exit(image);
 		return EXIT_FAILURE;
@@ -43,7 +45,8 @@ int main(void) {
 		perror("fopen");
 		return EXIT_FAILURE;
 	}
-	if (bitcarpet_write_fancy(image, WIDTH, HEIGHT, blank, filled) != 0) {
+	if (bitcarpet_write_fancy(image, WIDTH, HEIGHT, CELL_DX, CELL_DY, blank,
+							  filled) == -1) {
 		perror("bitcarpet_write_fancy");
 		fclose_or_exit(image);
 		return EXIT_FAILURE;
