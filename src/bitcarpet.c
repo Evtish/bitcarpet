@@ -20,18 +20,19 @@ static unsigned int f(unsigned int x, unsigned int y) {
 // Returns 0 on success and -1 on failure
 int bitcarpet_write_bw(FILE *fs, unsigned int w, unsigned int h,
 					   unsigned int cell_dx, unsigned int cell_dy) {
-	unsigned int w_px, h_px, x, y;
-	unsigned char bit_val, bit_pos, chunk = 0;
+	unsigned int w_px, h_px;
 	assert(fs);
-	assert(w > 0 && h > 0 && cell_dx > 0 && cell_dy > 0);
+	assert(w > 0 && h > 0);
+	assert(cell_dx > 0 && cell_dy > 0);
 	w_px = w * cell_dx;
 	h_px = h * cell_dy;
 	if (fprintf(fs, "P4\n%u %u\n", w_px, h_px) < 0)
 		return -1;
-	for (y = 0; y < h_px; ++y) {
-		for (x = 0; x < w_px; ++x) {
-			bit_val = f(x / cell_dx, y / cell_dy);
-			bit_pos = CHAR_BIT - (x % CHAR_BIT) - 1;
+	for (unsigned int y = 0; y < h_px; ++y) {
+		unsigned char chunk = 0;
+		for (unsigned int x = 0; x < w_px; ++x) {
+			unsigned char bit_val = f(x / cell_dx, y / cell_dy);
+			unsigned char bit_pos = CHAR_BIT - (x % CHAR_BIT) - 1;
 			chunk |= (bit_val << bit_pos);
 			if (x % CHAR_BIT == CHAR_BIT - 1 || x + 1 >= w_px) {
 				if (fputc(chunk, fs) == EOF && ferror(fs))
@@ -59,17 +60,18 @@ int bitcarpet_write_fancy(FILE *fs, unsigned int w, unsigned int h,
 						  unsigned int cell_dx, unsigned int cell_dy,
 						  unsigned char blank[BITCARPET_COLOR_N],
 						  unsigned char filled[BITCARPET_COLOR_N]) {
-	int n;
-	unsigned int w_px, h_px, x, y;
-	unsigned char *color;
+	unsigned int w_px, h_px;
 	assert(fs);
-	assert(w > 0 && h > 0 && cell_dx > 0 && cell_dy > 0);
+	assert(w > 0 && h > 0);
+	assert(cell_dx > 0 && cell_dy > 0);
 	w_px = w * cell_dx;
 	h_px = h * cell_dy;
 	if (fprintf(fs, "P6\n%u %u\n255\n", w_px, h_px) < 0)
 		return -1;
-	for (y = 0; y < h_px; ++y) {
-		for (x = 0; x < w_px; ++x) {
+	for (unsigned int y = 0; y < h_px; ++y) {
+		for (unsigned int x = 0; x < w_px; ++x) {
+			int n;
+			unsigned char *color;
 			if (f(x / cell_dx, y / cell_dy))
 				color = filled;
 			else
