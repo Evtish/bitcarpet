@@ -6,10 +6,10 @@
 
 #define PBM_FILENAME "bitcarpet_bw.pbm"
 #define PPM_FILENAME "bitcarpet_fancy.ppm"
-#define WIDTH 256  // In cells
-#define HEIGHT 256 // In cells
-#define CELL_DX 4  // In pixels
-#define CELL_DY 4  // In pixels
+#define WIDTH 256  // In cells.
+#define HEIGHT 256 // In cells.
+#define CELL_DX 4  // In pixels.
+#define CELL_DY 4  // In pixels.
 #define BLANK_R 0x1a
 #define BLANK_G 0x1b
 #define BLANK_B 0x26

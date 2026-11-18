@@ -8,22 +8,26 @@ static unsigned int f(unsigned int x, unsigned int y) {
 	return ((y + 1) * (y + 1) * (x + 1) >> 11) & 1;
 }
 
-// TODO: Return failure on multiplication overflow
-// Writes a BW carpet to an image
+// Check if a product of two unsigned ints will overflow.
+static int umulovf(unsigned int a, unsigned int b) { return a > UINT_MAX / b; }
+
+// Write a BW carpet to an image.
 //
-// fs - image, must not be NULL
-// w - image width in cells, must be positive
-// h - image height in cells, must be positive
-// cell_dx - cell width in pixels, must be positive
-// cell_dy - cell height in pixels, must be positive
+// fs - image, must not be NULL.
+// w - image width in cells, must be positive.
+// h - image height in cells, must be positive.
+// cell_dx - cell width in pixels, must be positive.
+// cell_dy - cell height in pixels, must be positive.
 //
-// Returns 0 on success and -1 on failure
+// Returns 0 on success and -1 on failure.
 int bitcarpet_write_bw(FILE *fs, unsigned int w, unsigned int h,
 					   unsigned int cell_dx, unsigned int cell_dy) {
 	unsigned int w_px, h_px;
 	assert(fs);
 	assert(w > 0 && h > 0);
 	assert(cell_dx > 0 && cell_dy > 0);
+	if (umulovf(w, cell_dx) || umulovf(h, cell_dy))
+		return -1;
 	w_px = w * cell_dx;
 	h_px = h * cell_dy;
 	if (fprintf(fs, "P4\n%u %u\n", w_px, h_px) < 0)
@@ -44,18 +48,17 @@ int bitcarpet_write_bw(FILE *fs, unsigned int w, unsigned int h,
 	return 0;
 }
 
-// TODO: Return failure on multiplication overflow
-// Writes a colored carpet to an image
+// Write a colored carpet to an image.
 //
-// fs - image, must not be NULL
-// w - image width in cells, must be positive
-// h - image height in cells, must be positive
-// cell_dx - cell width in pixels, must be positive
-// cell_dy - cell height in pixels, must be positive
-// blank - color for blank cells
-// filled - color for filled cells
+// fs - image, must not be NULL.
+// w - image width in cells, must be positive.
+// h - image height in cells, must be positive.
+// cell_dx - cell width in pixels, must be positive.
+// cell_dy - cell height in pixels, must be positive.
+// blank - color for blank cells.
+// filled - color for filled cells.
 //
-// Returns 0 on success and -1 on failure
+// Returns 0 on success and -1 on failure.
 int bitcarpet_write_fancy(FILE *fs, unsigned int w, unsigned int h,
 						  unsigned int cell_dx, unsigned int cell_dy,
 						  unsigned char blank[BITCARPET_COLOR_N],
@@ -64,6 +67,8 @@ int bitcarpet_write_fancy(FILE *fs, unsigned int w, unsigned int h,
 	assert(fs);
 	assert(w > 0 && h > 0);
 	assert(cell_dx > 0 && cell_dy > 0);
+	if (umulovf(w, cell_dx) || umulovf(h, cell_dy))
+		return -1;
 	w_px = w * cell_dx;
 	h_px = h * cell_dy;
 	if (fprintf(fs, "P6\n%u %u\n255\n", w_px, h_px) < 0)
