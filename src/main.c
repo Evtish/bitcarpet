@@ -28,13 +28,26 @@ int main(void) {
 	unsigned char blank[BITCARPET_COLOR_N] = {BLANK_R, BLANK_G, BLANK_B},
 				  filled[BITCARPET_COLOR_N] = {FILLED_R, FILLED_G, FILLED_B};
 	FILE *image;
+	enum bitcarpet_err_t bc_err;
 	image = fopen(PBM_FILENAME, "w");
 	if (!image) {
 		perror("fopen");
 		return EXIT_FAILURE;
 	}
-	if (bitcarpet_write_bw(image, WIDTH, HEIGHT, CELL_DX, CELL_DY) == -1) {
+	bc_err = bitcarpet_write_bw(image, WIDTH, HEIGHT, CELL_DX, CELL_DY);
+	switch (bc_err) {
+	case BITCARPET_E_OK:
+		break;
+	case BITCARPET_E_IO:
 		perror("bitcarpet_write_bw");
+		fclose_or_exit(image);
+		return EXIT_FAILURE;
+	case BITCARPET_E_OVF:
+		fputs("bitcarpet_write_bw: Multiplication overflow\n", stderr);
+		fclose_or_exit(image);
+		return EXIT_FAILURE;
+	default:
+		fputs("bitcarpet_write_bw: Unknown error\n", stderr);
 		fclose_or_exit(image);
 		return EXIT_FAILURE;
 	}
@@ -45,9 +58,21 @@ int main(void) {
 		perror("fopen");
 		return EXIT_FAILURE;
 	}
-	if (bitcarpet_write_fancy(image, WIDTH, HEIGHT, CELL_DX, CELL_DY, blank,
-							  filled) == -1) {
+	bc_err = bitcarpet_write_fancy(image, WIDTH, HEIGHT, CELL_DX, CELL_DY,
+								   blank, filled);
+	switch (bc_err) {
+	case BITCARPET_E_OK:
+		break;
+	case BITCARPET_E_IO:
 		perror("bitcarpet_write_fancy");
+		fclose_or_exit(image);
+		return EXIT_FAILURE;
+	case BITCARPET_E_OVF:
+		fputs("bitcarpet_write_fancy: Multiplication overflow\n", stderr);
+		fclose_or_exit(image);
+		return EXIT_FAILURE;
+	default:
+		fputs("bitcarpet_write_fancy: Unknown error\n", stderr);
 		fclose_or_exit(image);
 		return EXIT_FAILURE;
 	}
