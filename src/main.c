@@ -1,21 +1,10 @@
 #include <limits.h>
+#include <stdbool.h>
+#include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 
 #include "bitcarpet.h"
-
-#define PBM_FILENAME "bitcarpet_bw.pbm"
-#define PPM_FILENAME "bitcarpet_fancy.ppm"
-#define WIDTH 256  // In cells.
-#define HEIGHT 256 // In cells.
-#define CELL_DX 4  // In pixels.
-#define CELL_DY 4  // In pixels.
-#define BLANK_R 0x1a
-#define BLANK_G 0x1b
-#define BLANK_B 0x26
-#define FILLED_R 0xac
-#define FILLED_G 0xb0
-#define FILLED_B 0xd0
 
 static void fclose_or_exit(FILE *stream) {
 	if (fclose(stream) == EOF) {
@@ -25,58 +14,50 @@ static void fclose_or_exit(FILE *stream) {
 }
 
 int main(void) {
-	unsigned char blank[BITCARPET_COLOR_N] = {BLANK_R, BLANK_G, BLANK_B},
-				  filled[BITCARPET_COLOR_N] = {FILLED_R, FILLED_G, FILLED_B};
-	FILE *image;
+	const bool use_color = true;
+	const char *function_name =
+		(use_color) ? "bitcarpet_write_color" : "bitcarpet_write_bw";
+	const char *filename =
+		(use_color) ? "bitcarpet_color.ppm" : "bitcarpet_bw.pbm";
 	enum bitcarpet_err_t bc_err;
-	image = fopen(PBM_FILENAME, "w");
-	if (!image) {
+	struct bitcarpet_t bc;
+
+	bc.fs = fopen(filename, "w");
+	bc.w = 256;
+	bc.h = 256;
+	bc.dx = 4;
+	bc.dy = 4;
+	bc.is_inverted = false;
+	if (!bc.fs) {
 		perror("fopen");
 		return EXIT_FAILURE;
 	}
-	bc_err = bitcarpet_write_bw(image, WIDTH, HEIGHT, CELL_DX, CELL_DY);
+
+	if (use_color) {
+		unsigned char blank[BITCARPET_COLOR_N] = {0x1A, 0x1B, 0x26};
+		unsigned char filled[BITCARPET_COLOR_N] = {0xAC, 0xB0, 0xD0};
+		bc_err = bitcarpet_write_color(&bc, blank, filled);
+	} else {
+		bc_err = bitcarpet_write_bw(&bc);
+	}
+
 	switch (bc_err) {
 	case BITCARPET_E_OK:
-		break;
+		fclose_or_exit(bc.fs);
+		printf("%s image %s generated successfully\n",
+			   (use_color) ? "PPM" : "PBM", filename);
+		return EXIT_SUCCESS;
 	case BITCARPET_E_IO:
-		perror("bitcarpet_write_bw");
-		fclose_or_exit(image);
+		perror(function_name);
+		fclose_or_exit(bc.fs);
 		return EXIT_FAILURE;
 	case BITCARPET_E_OVF:
-		fputs("bitcarpet_write_bw: Multiplication overflow\n", stderr);
-		fclose_or_exit(image);
+		fprintf(stderr, "%s: Multiplication overflow\n", function_name);
+		fclose_or_exit(bc.fs);
 		return EXIT_FAILURE;
 	default:
-		fputs("bitcarpet_write_bw: Unknown error\n", stderr);
-		fclose_or_exit(image);
+		fprintf(stderr, "%s: Unknown error\n", function_name);
+		fclose_or_exit(bc.fs);
 		return EXIT_FAILURE;
 	}
-	fclose_or_exit(image);
-	printf("PBM image %s generated successfully\n", PBM_FILENAME);
-	image = fopen(PPM_FILENAME, "w");
-	if (!image) {
-		perror("fopen");
-		return EXIT_FAILURE;
-	}
-	bc_err = bitcarpet_write_fancy(image, WIDTH, HEIGHT, CELL_DX, CELL_DY,
-								   blank, filled);
-	switch (bc_err) {
-	case BITCARPET_E_OK:
-		break;
-	case BITCARPET_E_IO:
-		perror("bitcarpet_write_fancy");
-		fclose_or_exit(image);
-		return EXIT_FAILURE;
-	case BITCARPET_E_OVF:
-		fputs("bitcarpet_write_fancy: Multiplication overflow\n", stderr);
-		fclose_or_exit(image);
-		return EXIT_FAILURE;
-	default:
-		fputs("bitcarpet_write_fancy: Unknown error\n", stderr);
-		fclose_or_exit(image);
-		return EXIT_FAILURE;
-	}
-	fclose_or_exit(image);
-	printf("PPM image %s generated successfully\n", PPM_FILENAME);
-	return EXIT_SUCCESS;
 }
